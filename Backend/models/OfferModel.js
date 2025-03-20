@@ -9,7 +9,7 @@ const OfferSchema = new mongoose.Schema({
     signedPdfUrl: { type: String }, // After signing
     status: { type: String, enum: ["pending", "signed"], default: "pending" },
     isViewed: { type: Boolean, default: false },
-    trackingToken: { type: String, unique: true },
+     
 }, { timestamps: true });
 
 module.exports = mongoose.model("Offer", OfferSchema);

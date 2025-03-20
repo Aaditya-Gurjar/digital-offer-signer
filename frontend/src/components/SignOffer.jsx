@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import axios from "axios";
 import { useSearchParams } from "react-router-dom";
+import { baseUrl } from "../../utils/config";
 
 const SignOffer = () => {
   const sigCanvas = useRef(null);
@@ -27,7 +28,7 @@ const SignOffer = () => {
 
       try {
         const response = await axios.post(
-          "http://localhost:5000/api/offers/sign-offer",
+          `${baseUrl}api/offers/sign-offer`,
           {
             email,
             signature: signatureImage,

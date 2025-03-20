@@ -8,6 +8,7 @@ const path = require("path");
 const nodemailer = require("nodemailer");
 const OfferModel = require("../models/OfferModel");
 const { v4: uuidv4 } = require("uuid");
+const { baseUrl, FrontEndbaseUrl } = require("../utils/config");
 
 
 
@@ -26,8 +27,7 @@ const { v4: uuidv4 } = require("uuid");
 //         });
 //         await offer.save();
 //         const offerId = offer._id;
-//         console.log("Offer ID:", offerId, "Tracking Token:", offer.trackingToken);
-
+//        
 
 //         const trackEmail = `http://localhost:5000/track-email/${offerId}`;
 
@@ -100,35 +100,35 @@ const { v4: uuidv4 } = require("uuid");
 
 
 exports.createOffer = async (req, res) => {
-    try {
-        const { userEmail, userName, position, salary } = req.body;
+  try {
+    const { userEmail, userName, position, salary } = req.body;
 
-        // Create and save new offer with a unique tracking token
-        const offer = new Offer({
-            userEmail,
-            userName,
-            position,
-            salary,
+    // Create and save new offer with a unique tracking token
+    const offer = new Offer({
+      userEmail,
+      userName,
+      position,
+      salary,
 
-        });
-        await offer.save();
-        const offerId = offer._id;
-        console.log("Offer ID:", offerId);
-
-
-        // const trackEmail = `http://localhost:5000/track-email/${offerId}`;
-        const signatureLink = `http://localhost:5173/sign-offer?email=${encodeURIComponent(userEmail)}`;
+    });
+    await offer.save();
+    const offerId = offer._id;
+    console.log("Offer ID:", offerId);
 
 
+    // const trackEmail = `http://localhost:5000/track-email/${offerId}`;
+    const signatureLink = `${FrontEndbaseUrl}sign-offer?email=${encodeURIComponent(userEmail)}`;
 
-        const offerFolder = path.join(__dirname, "../offers");
-        if (!fs.existsSync(offerFolder)) {
-            fs.mkdirSync(offerFolder, { recursive: true });
-        }
-        const pdfPath = path.join(offerFolder, `${userEmail}_offer.pdf`);
 
-        // Create HTML content for the PDF with a logo at the top and detailed description with policy points
-        const htmlContent = `
+
+    const offerFolder = path.join(__dirname, "../offers");
+    if (!fs.existsSync(offerFolder)) {
+      fs.mkdirSync(offerFolder, { recursive: true });
+    }
+    const pdfPath = path.join(offerFolder, `${userEmail}_offer.pdf`);
+
+    // Create HTML content for the PDF with a logo at the top and detailed description with policy points
+    const htmlContent = `
       <html>
         <head>
           <style>
@@ -191,86 +191,86 @@ exports.createOffer = async (req, res) => {
       </html>
     `;
 
-        // Launch Puppeteer to generate the PDF from HTML
-        const browser = await puppeteer.launch();
-        const page = await browser.newPage();
-        await page.setContent(htmlContent, { waitUntil: "networkidle0" });
-        await page.pdf({ path: pdfPath, format: "A4" });
-        await browser.close();
+    // Launch Puppeteer to generate the PDF from HTML
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+    await page.pdf({ path: pdfPath, format: "A4" });
+    await browser.close();
 
-        // Set up Nodemailer with Gmail to send the email
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-        });
+    // Set up Nodemailer with Gmail to send the email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+    });
 
-        // Optional frontend signature link
+    // Optional frontend signature link
 
-        // Send email with the PDF attached
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: userEmail,
-            subject: "Your Offer Letter - Signature Required",
-            text: `Dear ${userName},
+    // Send email with the PDF attached
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: userEmail,
+      subject: "Your Offer Letter - Signature Required",
+      text: `Dear ${userName},
 
 Please find attached your offer letter. You may also review and sign your offer online here: ${signatureLink}
 
 Best regards,
 P&P INFOTECH`,
-            attachments: [
-                {
-                    filename: "OfferLetter.pdf",
-                    path: pdfPath
-                }
-            ]
-        });
+      attachments: [
+        {
+          filename: "OfferLetter.pdf",
+          path: pdfPath
+        }
+      ]
+    });
 
-        res.status(200).json({ message: "Offer Letter Sent with PDF!", offer });
-    } catch (error) {
-        console.error("Error generating offer letter:", error);
-        res.status(500).json({ message: "Error generating offer letter" });
-    }
+    res.status(200).json({ message: "Offer Letter Sent with PDF!", offer });
+  } catch (error) {
+    console.error("Error generating offer letter:", error);
+    res.status(500).json({ message: "Error generating offer letter" });
+  }
 };
 
 
 exports.trackEmail = async (req, res) => {
 
-    const { offerId, trackingToken } = req.params;
-    const userAgent = req.headers["user-agent"] || "";
+  const { offerId } = req.params;
+  const userAgent = req.headers["user-agent"] || "";
 
-    console.log("TrackEmail opened for Offer ID:", offerId);
-    console.log("User-Agent:", userAgent);
+  console.log("TrackEmail opened for Offer ID:", offerId);
+  console.log("User-Agent:", userAgent);
 
-    try {
+  try {
 
-        const offer = await OfferModel.findOne({ _id: offerId, trackingToken });
-        if (!offer) {
-            return res.status(404).send("Invalid request");
-        }
-
-        const headlessUA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/134.0.0.0 Safari/537.36";
-
-        if (!offer.isViewed) {
-            if (userAgent.trim() !== headlessUA) {
-                await OfferModel.findByIdAndUpdate(offerId, { isViewed: true, viewedAt: new Date() });
-                console.log("Offer marked as viewed");
-            } else {
-                console.log("HeadlessChrome request detected; not marking as viewed");
-            }
-        } else {
-            console.log("Offer already marked as viewed");
-        }
-
-        const pixel = Buffer.from(
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP88xIAAN8A3cX/6TcAAAAASUVORK5CYII=",
-            "base64"
-        );
-        res.set("Content-Type", "image/png");
-        res.send(pixel);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error tracking email");
+    const offer = await OfferModel.findOne({ _id: offerId });
+    if (!offer) {
+      return res.status(404).send("Invalid request");
     }
+
+    const headlessUA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/134.0.0.0 Safari/537.36";
+
+    if (!offer.isViewed) {
+      if (userAgent.trim() !== headlessUA) {
+        await OfferModel.findByIdAndUpdate(offerId, { isViewed: true, viewedAt: new Date() });
+        console.log("Offer marked as viewed");
+      } else {
+        console.log("HeadlessChrome request detected; not marking as viewed");
+      }
+    } else {
+      console.log("Offer already marked as viewed");
+    }
+
+    const pixel = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP88xIAAN8A3cX/6TcAAAAASUVORK5CYII=",
+      "base64"
+    );
+    res.set("Content-Type", "image/png");
+    res.send(pixel);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error tracking email");
+  }
 };
 
 // expots.signOffer = async (req, res) => {
@@ -289,29 +289,29 @@ exports.trackEmail = async (req, res) => {
 
 
 exports.signOffer = async (req, res) => {
-    try {
-        const { email, signature } = req.body;
-        // Find the offer by user email
-        const offer = await OfferModel.findOne({ userEmail: email });
-        if (!offer) {
-            return res.status(404).json({ message: "Offer Letter Not Found!" });
-        }
+  try {
+    const { email, signature } = req.body;
+    // Find the offer by user email
+    const offer = await OfferModel.findOne({ userEmail: email });
+    if (!offer) {
+      return res.status(404).json({ message: "Offer Letter Not Found!" });
+    }
 
-        // Optionally, update the offer record with the signature (if needed)
-        offer.signature = signature;
-        offer.signedAt = new Date();
-        await offer.save();
+    // Optionally, update the offer record with the signature (if needed)
+    offer.signature = signature;
+    offer.signedAt = new Date();
+    await offer.save();
 
-        // Define a folder and file path for the updated PDF
-        const offerFolder = path.join(__dirname, "../offers");
-        if (!fs.existsSync(offerFolder)) {
-            fs.mkdirSync(offerFolder, { recursive: true });
-        }
-        const updatedPdfPath = path.join(offerFolder, `${email}_signed_offer.pdf`);
+    // Define a folder and file path for the updated PDF
+    const offerFolder = path.join(__dirname, "../offers");
+    if (!fs.existsSync(offerFolder)) {
+      fs.mkdirSync(offerFolder, { recursive: true });
+    }
+    const updatedPdfPath = path.join(offerFolder, `${email}_signed_offer.pdf`);
 
-        // Create updated HTML content for the PDF that includes the signature image
-        // You can adjust the HTML as needed (logo, content, policy points, etc.)
-        const htmlContent = `
+    // Create updated HTML content for the PDF that includes the signature image
+    // You can adjust the HTML as needed (logo, content, policy points, etc.)
+    const htmlContent = `
       <html>
         <head>
           <style>
@@ -370,21 +370,21 @@ exports.signOffer = async (req, res) => {
       </html>
     `;
 
-        // Use Puppeteer to generate the updated PDF from HTML
-        const browser = await puppeteer.launch();
-        const page = await browser.newPage();
-        await page.setContent(htmlContent, { waitUntil: "networkidle0" });
-        await page.pdf({ path: updatedPdfPath, format: "A4" });
-        await browser.close();
+    // Use Puppeteer to generate the updated PDF from HTML
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+    await page.pdf({ path: updatedPdfPath, format: "A4" });
+    await browser.close();
 
-        // Configure Nodemailer to send the updated PDF via email
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-        });
+    // Configure Nodemailer to send the updated PDF via email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+    });
 
-        // Prepare email text/message
-        const emailText = `
+    // Prepare email text/message
+    const emailText = `
       Dear ${offer.userName},
       
       You have successfully signed and accepted your offer letter. Please find the updated offer letter (with your signature) attached.
@@ -395,23 +395,23 @@ exports.signOffer = async (req, res) => {
       P&P INFOTECH
     `;
 
-        // Send email with the updated PDF attached
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: "Offer Letter Signed Successfully - Next Steps",
-            text: emailText,
-            attachments: [
-                {
-                    filename: "SignedOfferLetter.pdf",
-                    path: updatedPdfPath
-                }
-            ]
-        });
+    // Send email with the updated PDF attached
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Offer Letter Signed Successfully - Next Steps",
+      text: emailText,
+      attachments: [
+        {
+          filename: "SignedOfferLetter.pdf",
+          path: updatedPdfPath
+        }
+      ]
+    });
 
-        res.status(200).json({ message: "Offer signed and updated PDF sent successfully!", offer });
-    } catch (error) {
-        console.error("Error signing offer:", error);
-        res.status(500).json({ message: "Error signing offer" });
-    }
+    res.status(200).json({ message: "Offer signed and updated PDF sent successfully!", offer });
+  } catch (error) {
+    console.error("Error signing offer:", error);
+    res.status(500).json({ message: "Error signing offer" });
+  }
 };

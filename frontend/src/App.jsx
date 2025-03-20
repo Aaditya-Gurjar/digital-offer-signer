@@ -94,6 +94,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./style.css";
+import { baseUrl } from "../utils/config";
 
 const App = () => {
   const [formData, setFormData] = useState({
@@ -112,7 +113,7 @@ const App = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/offers/create", formData);
+      await axios.post(`${baseUrl}api/offers/create`, formData);
       setMessage("Offer letter sent successfully! Check your email.");
       navigate(`/sign-offer?email=${formData.userEmail}`);
     } catch (error) {
