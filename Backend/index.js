@@ -10,7 +10,24 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+const allowedOrigins = [
+    "http://localhost:5173",  // Your local frontend (Vite)
+    "https://esign-offerletter.netlify.app"  // Your deployed frontend
+];
+
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true); // Allow the request
+            } else {
+                callback(new Error("CORS Error: This origin is not allowed"));
+            }
+        },
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // Allowed HTTP methods
+        credentials: true, // Allow cookies & authentication headers
+    })
+);
 
 // Connect to MongoDB
 mongoose
