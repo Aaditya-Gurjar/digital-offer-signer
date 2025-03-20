@@ -109,8 +109,11 @@ exports.createOffer = async (req, res) => {
     // Launch Puppeteer to generate the PDF from HTML
     // const browser = await puppeteer.launch();
     const browser = await puppeteer.launch({
+      headless: "new",
+      executablePath: process.env.CHROME_EXECUTABLE_PATH || puppeteer.executablePath(),
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
+
     const page = await browser.newPage();
 
     console.log("Step3")
