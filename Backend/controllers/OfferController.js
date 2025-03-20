@@ -8,94 +8,8 @@ const path = require("path");
 const nodemailer = require("nodemailer");
 const OfferModel = require("../models/OfferModel");
 const { v4: uuidv4 } = require("uuid");
-const { baseUrl, FrontEndbaseUrl } = require("../utils/config");
+const { FrontEndbaseUrl } = require("../utils/config");
 
-
-
-// // Create and send HTML offer email
-// exports.createOffer = async (req, res) => {
-//     try {
-//         const { userEmail, userName, position, salary } = req.body;
-
-//         // Create and save new offer with a unique tracking token
-//         const offer = new Offer({
-//             userEmail,
-//             userName,
-//             position,
-//             salary,
-
-//         });
-//         await offer.save();
-//         const offerId = offer._id;
-//        
-
-//         const trackEmail = `http://localhost:5000/track-email/${offerId}`;
-
-//         const signatureLink = `http://localhost:5173/sign-offer?email=${encodeURIComponent(userEmail)}`;
-
-//         const emailHTML = `
-//       <html>
-//       <head>
-//         <style>
-//           body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; padding: 30px; }
-//           .container { 
-//               background: #fff; 
-//               padding: 20px; 
-//               border-radius: 10px; 
-//               box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); 
-//               width: 500px; 
-//               margin: auto; 
-//           }
-//           h2 { color: #333; }
-//           p { font-size: 16px; color: #666; }
-//           .btn {
-//               display: inline-block;
-//               background: #007bff;
-//               color: #fff;
-//               padding: 12px 20px;
-//               text-decoration: none;
-//               font-size: 16px;
-//               border-radius: 5px;
-//               margin-top: 20px;
-//               transition: background 0.3s ease;
-//           }
-//           .btn:hover { background: #0056b3; }
-//         </style>
-//       </head>
-//       <body>
-//         <!-- Tracking Pixel (invisible) -->
-//         <img src="${trackEmail}" width="1" height="1" style="display:none;" alt="">
-//         <div class="container">
-//           <h2>Offer Letter for ${userName}</h2>
-//           <p>Dear <strong>${userName}</strong>,</p>
-//           <p>We are pleased to offer you the position of <strong>${position}</strong> with a salary of <strong>${salary}</strong>.</p>
-//           <p>Please click the button below to review and sign your offer letter.</p>
-//           <a href="${signatureLink}" class="btn">Sign Here</a>
-//         </div>
-//       </body>
-//       </html>
-//     `;
-
-
-//         const transporter = nodemailer.createTransport({
-//             service: "gmail",
-//             auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-//         });
-
-
-//         await transporter.sendMail({
-//             from: process.env.EMAIL_USER,
-//             to: userEmail,
-//             subject: "Your Offer Letter - Signature Required",
-//             html: emailHTML,
-//         });
-
-//         res.status(200).json({ message: "Offer Letter Sent!", offer });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: "Error generating offer letter" });
-//     }
-// };
 
 
 
@@ -103,13 +17,11 @@ exports.createOffer = async (req, res) => {
   try {
     const { userEmail, userName, position, salary } = req.body;
 
-    // Create and save new offer with a unique tracking token
     const offer = new Offer({
       userEmail,
       userName,
       position,
       salary,
-
     });
     await offer.save();
     const offerId = offer._id;
@@ -127,7 +39,7 @@ exports.createOffer = async (req, res) => {
     }
     const pdfPath = path.join(offerFolder, `${userEmail}_offer.pdf`);
 
-    // Create HTML content for the PDF with a logo at the top and detailed description with policy points
+
     const htmlContent = `
       <html>
         <head>
@@ -192,7 +104,10 @@ exports.createOffer = async (req, res) => {
     `;
 
     // Launch Puppeteer to generate the PDF from HTML
-    const browser = await puppeteer.launch();
+    // const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: "networkidle0" });
     await page.pdf({ path: pdfPath, format: "A4" });
@@ -203,8 +118,6 @@ exports.createOffer = async (req, res) => {
       service: "gmail",
       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
     });
-
-    // Optional frontend signature link
 
     // Send email with the PDF attached
     await transporter.sendMail({
@@ -224,6 +137,7 @@ P&P INFOTECH`,
         }
       ]
     });
+
 
     res.status(200).json({ message: "Offer Letter Sent with PDF!", offer });
   } catch (error) {
@@ -272,20 +186,6 @@ exports.trackEmail = async (req, res) => {
     res.status(500).send("Error tracking email");
   }
 };
-
-// expots.signOffer = async (req, res) => {
-//     try {
-//         const { email, signature } = req.body;
-//         const offer = await OfferModel.findOne({ userEmail: email });
-//         if(!offer){
-//             return res.status(404).json({message:"Offer Letter Not Found!"})
-//         }
-
-//     } catch (error) {
-//         console.error("Error signing offer:", error);
-//         res.status(500).json({ message: "Error signing offer" });
-//     }
-// }
 
 
 exports.signOffer = async (req, res) => {
