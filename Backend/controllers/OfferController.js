@@ -15,154 +15,6 @@ const { PDFDocument, rgb } = require('pdf-lib');
 
 
 
-// exports.createOffer = async (req, res) => {
-//   try {
-//     const { userEmail, userName, position, salary } = req.body;
-
-//     const offer = new Offer({
-//       userEmail,
-//       userName,
-//       position,
-//       salary,
-//     });
-//     await offer.save();
-//     const offerId = offer._id;
-//     console.log("Offer ID:", offerId);
-
-
-//     // const trackEmail = `http://localhost:5000/track-email/${offerId}`;
-//     const signatureLink = `${FrontEndbaseUrl}sign-offer?email=${encodeURIComponent(userEmail)}`;
-
-
-//     console.log("Step1")
-//     const offerFolder = path.join(__dirname, "../offers");
-//     if (!fs.existsSync(offerFolder)) {
-//       fs.mkdirSync(offerFolder, { recursive: true });
-//     }
-//     const pdfPath = path.join(offerFolder, `${userEmail}_offer.pdf`);
-
-
-//     const htmlContent = `
-//       <html>
-//         <head>
-//           <style>
-//             body { font-family: Arial, sans-serif; padding: 20px; }
-//             .header { text-align: center; margin-bottom: 20px; }
-//             .header img { width: 150px; }
-//             .content { margin: 20px; }
-//             .content h1 { color: #333; }
-//             .content p { font-size: 16px; color: #555; line-height: 1.5; }
-//             .policy { margin-top: 20px; }
-//             .policy h3 { color: #007bff; }
-//             .policy ul { list-style-type: disc; padding-left: 20px; }
-//             .btn { 
-//               display: inline-block; 
-//               background: #007bff; 
-//               color: #fff; 
-//               padding: 10px 20px; 
-//               text-decoration: none; 
-//               border-radius: 5px;
-//               margin-top: 20px;
-//             }
-//             .footer { margin-top: 40px; font-size: 12px; color: #777; text-align: center; }
-//           </style>
-//         </head>
-//         <body>
-//           <div class="header">
-//             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT99XVSieJwmWcAjaxxFhdHPoCi-Jof0u4eWA&s" alt="Company Logo">
-//           </div>
-//           <div class="content">
-//             <h1>Offer Letter for ${userName}</h1>
-//             <p>Dear ${userName},</p>
-//             <p>
-//               We are delighted to offer you the position of <strong>${position}</strong> with an annual salary of <strong>${salary}</strong>.
-//               Below are the detailed terms and policies that govern your employment:
-//             </p>
-//             <h2>Offer Details</h2>
-//             <p>
-//               Your role is integral to our team and involves responsibilities that align with our company’s mission of innovation and excellence.
-//               We expect you to adhere to the highest standards of professionalism and ethical behavior.
-//             </p>
-//             <div class="policy">
-//               <h3>Key Policy Points:</h3>
-//               <ul>
-//                 <li><strong>Confidentiality:</strong> All proprietary information must be kept confidential.</li>
-//                 <li><strong>Non-Disclosure:</strong> You are required to sign a non-disclosure agreement regarding company trade secrets.</li>
-//                 <li><strong>Code of Conduct:</strong> Maintain professionalism and respect in all interactions.</li>
-//                 <li><strong>Performance Reviews:</strong> Regular performance evaluations will help monitor and foster your growth.</li>
-//                 <li><strong>Compliance:</strong> Adhere to all company policies, legal regulations, and industry standards.</li>
-//               </ul>
-//             </div>
-//             <p>
-//               To accept this offer, please click the button below to sign the document electronically.
-//             </p>
-//             <a href="${signatureLink}" class="btn">Sign Offer Letter</a>
-//           </div>
-//           <div class="footer">
-//             <p>&copy; 2025 Your Company Name. All rights reserved.</p>
-//           </div>
-//         </body>
-//       </html>
-//     `;
-
-//     console.log("Step2")
-
-
-//     // Launch Puppeteer to generate the PDF from HTML
-//     // const browser = await puppeteer.launch();
-//     const browser = await puppeteer.launch({
-//       headless: "new",
-//       executablePath: process.env.CHROME_EXECUTABLE_PATH || puppeteer.executablePath(),
-//       args: ["--no-sandbox", "--disable-setuid-sandbox"],
-//     });
-
-//     const page = await browser.newPage();
-
-//     console.log("Step3")
-
-//     console.log("Page", page)
-//     await page.setContent(htmlContent, { waitUntil: "networkidle0" });
-//     await page.pdf({ path: pdfPath, format: "A4" });
-//     await browser.close();
-
-//     // Set up Nodemailer with Gmail to send the email
-//     const transporter = nodemailer.createTransport({
-//       service: "gmail",
-//       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-//     });
-
-//     console.log("Step4")
-
-
-//     // Send email with the PDF attached
-//     await transporter.sendMail({
-//       from: process.env.EMAIL_USER,
-//       to: userEmail,
-//       subject: "Your Offer Letter - Signature Required",
-//       text: `Dear ${userName},
-
-// Please find attached your offer letter. You may also review and sign your offer online here: ${signatureLink}
-
-// Best regards,
-// P&P INFOTECH`,
-//       attachments: [
-//         {
-//           filename: "OfferLetter.pdf",
-//           path: pdfPath
-//         }
-//       ]
-//     });
-//     console.log("Step5")
-
-
-//     res.status(200).json({ message: "Offer Letter Sent with PDF!", offer });
-//   } catch (error) {
-//     console.error("Error generating offer letter:", error);
-//     res.status(500).json({ message: "Error generating offer letter" });
-//   }
-// };
-
-
 exports.createOffer = async (req, res) => {
   try {
     const { userEmail, userName, position, salary } = req.body;
@@ -177,41 +29,112 @@ exports.createOffer = async (req, res) => {
     const offerId = offer._id;
     console.log("Offer ID:", offerId);
 
+
+    // const trackEmail = `http://localhost:5000/track-email/${offerId}`;
     const signatureLink = `${FrontEndbaseUrl}sign-offer?email=${encodeURIComponent(userEmail)}`;
 
-    console.log("Step1");
+
+    console.log("Step1")
     const offerFolder = path.join(__dirname, "../offers");
     if (!fs.existsSync(offerFolder)) {
       fs.mkdirSync(offerFolder, { recursive: true });
     }
     const pdfPath = path.join(offerFolder, `${userEmail}_offer.pdf`);
 
-    console.log("Step2");
 
-    // ✅ Create PDF using pdf-lib (No Puppeteer)
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([600, 800]);
+    const htmlContent = `
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .header img { width: 150px; }
+            .content { margin: 20px; }
+            .content h1 { color: #333; }
+            .content p { font-size: 16px; color: #555; line-height: 1.5; }
+            .policy { margin-top: 20px; }
+            .policy h3 { color: #007bff; }
+            .policy ul { list-style-type: disc; padding-left: 20px; }
+            .btn { 
+              display: inline-block; 
+              background: #007bff; 
+              color: #fff; 
+              padding: 10px 20px; 
+              text-decoration: none; 
+              border-radius: 5px;
+              margin-top: 20px;
+            }
+            .footer { margin-top: 40px; font-size: 12px; color: #777; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT99XVSieJwmWcAjaxxFhdHPoCi-Jof0u4eWA&s" alt="Company Logo">
+          </div>
+          <div class="content">
+            <h1>Offer Letter for ${userName}</h1>
+            <p>Dear ${userName},</p>
+            <p>
+              We are delighted to offer you the position of <strong>${position}</strong> with an annual salary of <strong>${salary}</strong>.
+              Below are the detailed terms and policies that govern your employment:
+            </p>
+            <h2>Offer Details</h2>
+            <p>
+              Your role is integral to our team and involves responsibilities that align with our company’s mission of innovation and excellence.
+              We expect you to adhere to the highest standards of professionalism and ethical behavior.
+            </p>
+            <div class="policy">
+              <h3>Key Policy Points:</h3>
+              <ul>
+                <li><strong>Confidentiality:</strong> All proprietary information must be kept confidential.</li>
+                <li><strong>Non-Disclosure:</strong> You are required to sign a non-disclosure agreement regarding company trade secrets.</li>
+                <li><strong>Code of Conduct:</strong> Maintain professionalism and respect in all interactions.</li>
+                <li><strong>Performance Reviews:</strong> Regular performance evaluations will help monitor and foster your growth.</li>
+                <li><strong>Compliance:</strong> Adhere to all company policies, legal regulations, and industry standards.</li>
+              </ul>
+            </div>
+            <p>
+              To accept this offer, please click the button below to sign the document electronically.
+            </p>
+            <a href="${signatureLink}" class="btn">Sign Offer Letter</a>
+          </div>
+          <div class="footer">
+            <p>&copy; 2025 Your Company Name. All rights reserved.</p>
+          </div>
+        </body>
+      </html>
+    `;
 
-    page.drawText("Offer Letter", { x: 200, y: 750, size: 24, color: rgb(0, 0, 0) });
-    page.drawText(`Dear ${userName},`, { x: 50, y: 700, size: 18, color: rgb(0, 0, 0) });
-    page.drawText(`We are delighted to offer you the position of ${position}.`, { x: 50, y: 670, size: 14 });
-    page.drawText(`Salary: ${salary}`, { x: 50, y: 650, size: 14 });
-    page.drawText("Please sign the offer letter using the link below:", { x: 50, y: 620, size: 14 });
-    page.drawText(signatureLink, { x: 50, y: 600, size: 12, color: rgb(0, 0, 1) });
+    console.log("Step2")
 
-    const pdfBytes = await pdfDoc.save();
-    fs.writeFileSync(pdfPath, pdfBytes);
 
-    console.log("Step3");
-
-    // ✅ Send Email with Nodemailer
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    // Launch Puppeteer to generate the PDF from HTML
+    // const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      headless: "new",
+      executablePath: process.env.CHROME_EXECUTABLE_PATH || puppeteer.executablePath(),
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
-    console.log("Step4");
+    const page = await browser.newPage();
 
+    console.log("Step3")
+
+    console.log("Page", page)
+    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+    await page.pdf({ path: pdfPath, format: "A4" });
+    await browser.close();
+
+    // Set up Nodemailer with Gmail to send the email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+    });
+
+    console.log("Step4")
+
+
+    // Send email with the PDF attached
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: userEmail,
@@ -222,10 +145,15 @@ Please find attached your offer letter. You may also review and sign your offer 
 
 Best regards,
 P&P INFOTECH`,
-      attachments: [{ filename: "OfferLetter.pdf", path: pdfPath }],
+      attachments: [
+        {
+          filename: "OfferLetter.pdf",
+          path: pdfPath
+        }
+      ]
     });
+    console.log("Step5")
 
-    console.log("Step5");
 
     res.status(200).json({ message: "Offer Letter Sent with PDF!", offer });
   } catch (error) {
@@ -233,6 +161,78 @@ P&P INFOTECH`,
     res.status(500).json({ message: "Error generating offer letter" });
   }
 };
+
+
+// exports.createOffer = async (req, res) => {
+//   try {
+//     const { userEmail, userName, position, salary } = req.body;
+
+//     const offer = new Offer({
+//       userEmail,
+//       userName,
+//       position,
+//       salary,
+//     });
+//     await offer.save();
+//     const offerId = offer._id;
+//     console.log("Offer ID:", offerId);
+
+//     const signatureLink = `${FrontEndbaseUrl}sign-offer?email=${encodeURIComponent(userEmail)}`;
+
+//     console.log("Step1");
+//     const offerFolder = path.join(__dirname, "../offers");
+//     if (!fs.existsSync(offerFolder)) {
+//       fs.mkdirSync(offerFolder, { recursive: true });
+//     }
+//     const pdfPath = path.join(offerFolder, `${userEmail}_offer.pdf`);
+
+//     console.log("Step2");
+
+//     // ✅ Create PDF using pdf-lib (No Puppeteer)
+//     const pdfDoc = await PDFDocument.create();
+//     const page = pdfDoc.addPage([600, 800]);
+
+//     page.drawText("Offer Letter", { x: 200, y: 750, size: 24, color: rgb(0, 0, 0) });
+//     page.drawText(`Dear ${userName},`, { x: 50, y: 700, size: 18, color: rgb(0, 0, 0) });
+//     page.drawText(`We are delighted to offer you the position of ${position}.`, { x: 50, y: 670, size: 14 });
+//     page.drawText(`Salary: ${salary}`, { x: 50, y: 650, size: 14 });
+//     page.drawText("Please sign the offer letter using the link below:", { x: 50, y: 620, size: 14 });
+//     page.drawText(signatureLink, { x: 50, y: 600, size: 12, color: rgb(0, 0, 1) });
+
+//     const pdfBytes = await pdfDoc.save();
+//     fs.writeFileSync(pdfPath, pdfBytes);
+
+//     console.log("Step3");
+
+//     // ✅ Send Email with Nodemailer
+//     const transporter = nodemailer.createTransport({
+//       service: "gmail",
+//       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+//     });
+
+//     console.log("Step4");
+
+//     await transporter.sendMail({
+//       from: process.env.EMAIL_USER,
+//       to: userEmail,
+//       subject: "Your Offer Letter - Signature Required",
+//       text: `Dear ${userName},
+
+// Please find attached your offer letter. You may also review and sign your offer online here: ${signatureLink}
+
+// Best regards,
+// P&P INFOTECH`,
+//       attachments: [{ filename: "OfferLetter.pdf", path: pdfPath }],
+//     });
+
+//     console.log("Step5");
+
+//     res.status(200).json({ message: "Offer Letter Sent with PDF!", offer });
+//   } catch (error) {
+//     console.error("Error generating offer letter:", error);
+//     res.status(500).json({ message: "Error generating offer letter" });
+//   }
+// };
 
 
 
