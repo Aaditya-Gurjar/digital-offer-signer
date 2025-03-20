@@ -161,7 +161,6 @@ const pdf = require("html-pdf-node");
 //   }
 // };
 
-const pdf = require("html-pdf-node");
 
 exports.createOffer = async (req, res) => {
   try {
