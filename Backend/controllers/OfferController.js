@@ -32,7 +32,7 @@ exports.createOffer = async (req, res) => {
     const signatureLink = `${FrontEndbaseUrl}sign-offer?email=${encodeURIComponent(userEmail)}`;
 
 
-
+    console.log("Step1")
     const offerFolder = path.join(__dirname, "../offers");
     if (!fs.existsSync(offerFolder)) {
       fs.mkdirSync(offerFolder, { recursive: true });
@@ -103,12 +103,19 @@ exports.createOffer = async (req, res) => {
       </html>
     `;
 
+    console.log("Step2")
+
+
     // Launch Puppeteer to generate the PDF from HTML
     // const browser = await puppeteer.launch();
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
     const page = await browser.newPage();
+
+    console.log("Step3")
+
+    console.log("Page", page)
     await page.setContent(htmlContent, { waitUntil: "networkidle0" });
     await page.pdf({ path: pdfPath, format: "A4" });
     await browser.close();
@@ -118,6 +125,9 @@ exports.createOffer = async (req, res) => {
       service: "gmail",
       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
     });
+
+    console.log("Step4")
+
 
     // Send email with the PDF attached
     await transporter.sendMail({
@@ -137,6 +147,7 @@ P&P INFOTECH`,
         }
       ]
     });
+    console.log("Step5")
 
 
     res.status(200).json({ message: "Offer Letter Sent with PDF!", offer });
